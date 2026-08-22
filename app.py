@@ -156,7 +156,20 @@ if st.session_state.screened_df is not None:
                 cell.font = header_font
                 cell.alignment = Alignment(horizontal="center", vertical="center")
                 
-            # 3. 열 너비 자동 조절 (동적 기준)
+            # 3. 데이터 셀 서식 지정 (C열 가운데 정렬 & 소수점 자릿수 포맷 설정)
+            for row_idx in range(2, max_row + 1):
+                # C열 (시장) 가운데 정렬
+                worksheet.cell(row=row_idx, column=3).alignment = Alignment(horizontal="center", vertical="center")
+                
+                # E, F열 (시가총액, 거래대금): 소수점 1자리
+                for col_idx in [5, 6]:
+                    worksheet.cell(row=row_idx, column=col_idx).number_format = "0.0"
+                    
+                # G ~ M열 (누적/당일 수급 및 ZScore 등): 소수점 2자리
+                for col_idx in range(7, 14):
+                    worksheet.cell(row=row_idx, column=col_idx).number_format = "0.00"
+
+            # 4. 열 너비 자동 조절 (동적 기준)
             for col in worksheet.columns:
                 max_len = 0
                 col_letter = get_column_letter(col[0].column)
