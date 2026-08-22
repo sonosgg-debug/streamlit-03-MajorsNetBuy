@@ -30,9 +30,7 @@ if "auth_status" not in st.session_state:
 
 # ================= SIDEBAR =================
 st.sidebar.header("🔑 1. KRX 세션 설정")
-st.sidebar.markdown(
-    "수급 세부 주체(연기금, 투신 등) 조회를 위해 [KRX 정보데이터시스템](https://data.krx.co.kr/)의 무료 회원 계정이 필요합니다."
-)
+
 
 krx_id = st.sidebar.text_input("KRX ID", value=os.getenv("KRX_ID", ""))
 krx_pw = st.sidebar.text_input("KRX Password", type="password", value=os.getenv("KRX_PW", ""))
