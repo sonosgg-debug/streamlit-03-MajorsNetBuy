@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.venv/
+.env
+
+# Cache files
+cache/
+
+# Temporary / Log files
+*.log
+error_resp.html
+
+# Streamlit
+.streamlit/
