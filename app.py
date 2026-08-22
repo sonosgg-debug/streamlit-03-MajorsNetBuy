@@ -136,6 +136,38 @@ if st.session_state.screened_df is not None:
         excel_buffer = io.BytesIO()
         with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
             df_res.to_excel(writer, sheet_name='ScreenerResult', index=True)
+            
+            worksheet = writer.sheets['ScreenerResult']
+            max_row = worksheet.max_row
+            max_col = worksheet.max_column
+            
+            # 1. 1행 (헤더) 자동 필터 적용 (오름차순/내림차순 토글)
+            from openpyxl.utils import get_column_letter
+            worksheet.auto_filter.ref = f"A1:{get_column_letter(max_col)}{max_row}"
+            
+            # 2. 1행 (헤더) 바탕색 및 폰트 설정
+            from openpyxl.styles import PatternFill, Font, Alignment
+            header_fill = PatternFill(start_color="DCE6F1", end_color="DCE6F1", fill_type="solid")  # 연한 파란색
+            header_font = Font(name="Malgun Gothic", bold=True, size=11)
+            
+            for col_idx in range(1, max_col + 1):
+                cell = worksheet.cell(row=1, column=col_idx)
+                cell.fill = header_fill
+                cell.font = header_font
+                cell.alignment = Alignment(horizontal="center", vertical="center")
+                
+            # 3. 열 너비 자동 조절 (동적 기준)
+            for col in worksheet.columns:
+                max_len = 0
+                col_letter = get_column_letter(col[0].column)
+                for cell in col:
+                    val_str = str(cell.value or '')
+                    # 한글 등 멀티바이트 문자는 길이를 2로 가중치 부여
+                    byte_len = sum([2 if ord(c) > 127 else 1 for c in val_str])
+                    if byte_len > max_len:
+                        max_len = byte_len
+                worksheet.column_dimensions[col_letter].width = max(max_len + 3, 12)
+                
         excel_data = excel_buffer.getvalue()
         
         st.download_button(

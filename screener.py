@@ -27,6 +27,11 @@ class StockScreener:
         print(f"Loading market cap data for {self.target_date}...")
         self.df_mkt_cap = fetch_market_cap_with_cache(self.target_date, market=self.market)
         
+        # 시장 구분용 티커 목록 로드 (코스피/코스닥 구분용)
+        from pykrx import stock
+        self.kospi_tickers = set(stock.get_market_ticker_list(date=self.target_date, market="KOSPI"))
+        self.kosdaq_tickers = set(stock.get_market_ticker_list(date=self.target_date, market="KOSDAQ"))
+        
     def _get_historical_business_days(self, days_needed):
         """
         기준일(target_date) 포함하여 과거로 N개의 영업일 리스트를 반환합니다.
@@ -156,6 +161,16 @@ class StockScreener:
         # 가독성을 위한 컬럼 정리 및 정렬 (누적 수급 강도 높은 순)
         if not df_screened.empty:
             df_screened = df_screened.sort_values(by="누적수급강도(시총비)", ascending=False)
+            
+            # 시장 구분 컬럼 생성
+            def get_mkt_name(ticker):
+                if ticker in self.kospi_tickers:
+                    return "코스피"
+                elif ticker in self.kosdaq_tickers:
+                    return "코스닥"
+                return "기타"
+            df_screened["시장"] = df_screened.index.map(get_mkt_name)
+            
             # 수치 가독성 처리 (금액 단위를 억 원으로 표시)
             df_screened["시가총액(억)"] = (df_screened["시가총액"] / 100000000).round(1)
             df_screened["5일평균거래대금(억)"] = (df_screened["5일평균거래대금"] / 100000000).round(1)
@@ -168,7 +183,7 @@ class StockScreener:
             df_screened["ZScore"] = df_screened["수급ZScore"].round(2)
             
             output_cols = [
-                "종목명", "종가", "시가총액(억)", "5일평균거래대금(억)", 
+                "종목명", "시장", "종가", "시가총액(억)", "5일평균거래대금(억)", 
                 "누적순매수대금(억)", "누적수급강도(%)", 
                 "당일순매수대금(억)", "당일수급지배력(%)", "ZScore",
                 "외인순매수(억)", "기관순매수(억)", "양매수여부"
