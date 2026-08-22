@@ -1,4 +1,5 @@
 import streamlit as st
+import io
 import pandas as pd
 import datetime
 import plotly.graph_objects as go
@@ -122,13 +123,26 @@ if st.session_state.screened_df is not None:
         # 데이터프레임 렌더링
         st.dataframe(df_res, use_container_width=True)
         
-        # CSV 다운로드 기능
-        csv = df_res.to_csv(index=True, encoding="utf-8-sig")
+        # Excel 다운로드 기능
+        market_suffixes = {
+            "ALL": "ALL",
+            "KOSPI": "KS",
+            "KOSDAQ": "KQ"
+        }
+        market_suffix = market_suffixes.get(market, "ALL")
+        formatted_date = selected_date.strftime("%Y-%m-%d")
+        excel_filename = f"MajorsNetBuy-{market_suffix}-{formatted_date}.xlsx"
+        
+        excel_buffer = io.BytesIO()
+        with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
+            df_res.to_excel(writer, sheet_name='ScreenerResult', index=True)
+        excel_data = excel_buffer.getvalue()
+        
         st.download_button(
-            label="📥 스크리닝 결과 CSV 다운로드",
-            data=csv,
-            file_name=f"netbuy_screen_{target_date_str}.csv",
-            mime="text/csv"
+            label="📥 스크리닝 결과 엑셀 다운로드",
+            data=excel_data,
+            file_name=excel_filename,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
         
         st.markdown("---")
