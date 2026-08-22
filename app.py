@@ -60,7 +60,7 @@ min_turnover = st.sidebar.number_input("최소 5일 평균 거래대금 (억 원
 st.sidebar.subheader("수급 상세 조건")
 target_investor = st.sidebar.selectbox(
     "주 분석 수급 주체", 
-    ["연기금", "투신", "사모", "금융투자", "기관합계", "외국인"], 
+    ["연기금", "투신", "사모", "금융투자", "기관합계", "외국인", "외국인+투신+연기금"], 
     index=0
 )
 
@@ -134,7 +134,8 @@ if st.session_state.screened_df is not None:
             "사모": "13",
             "금융투자": "14",
             "기관합계": "15",
-            "외국인": "21"
+            "외국인": "21",
+            "외국인+투신+연기금": "99"
         }
         investor_code = investor_codes.get(target_investor, "00")
         

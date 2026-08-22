@@ -96,6 +96,33 @@ def fetch_investor_net_purchases_with_cache(start_date, end_date, market="ALL", 
     start_date = get_nearest_business_day(start_date)
     end_date = get_nearest_business_day(end_date)
     
+    # 외국인+투신+연기금 3대 주체 합산 처리
+    if investor == "외국인+투신+연기금":
+        sub_investors = ["외국인", "투신", "연기금"]
+        dfs = []
+        for sub in sub_investors:
+            df_sub = fetch_investor_net_purchases_with_cache(start_date, end_date, market=market, investor=sub)
+            if not df_sub.empty:
+                dfs.append(df_sub[["순매수거래량", "순매수거래대금"]])
+        if not dfs:
+            return pd.DataFrame()
+            
+        df_combined = pd.concat(dfs).groupby(level=0).sum()
+        
+        # 종목명 맵핑 복원
+        for sub in sub_investors:
+            df_sub = fetch_investor_net_purchases_with_cache(start_date, end_date, market=market, investor=sub)
+            if not df_sub.empty and "종목명" in df_sub.columns:
+                df_combined["종목명"] = df_sub["종목명"]
+                break
+                
+        # 기존 스키마 호환성 필드 구성
+        df_combined["매도거래량"] = 0
+        df_combined["매수거래량"] = 0
+        df_combined["매도거래대금"] = 0
+        df_combined["매수거래대금"] = 0
+        return df_combined
+
     # 투자자 한글명 -> pykrx 인자 매핑
     # pykrx의 get_market_net_purchases_of_equities_by_ticker는 한글 수급 주체명을 인자로 받음
     # (예: '외국인', '기관합계', '연기금', '투신', '사모', '금융투자', '보험', '개인' 등)
