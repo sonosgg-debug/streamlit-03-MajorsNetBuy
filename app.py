@@ -127,8 +127,19 @@ if st.session_state.screened_df is not None:
             "KOSDAQ": "KQ"
         }
         market_suffix = market_suffixes.get(market, "ALL")
+        
+        investor_codes = {
+            "연기금": "11",
+            "투신": "12",
+            "사모": "13",
+            "금융투자": "14",
+            "기관합계": "15",
+            "외국인": "21"
+        }
+        investor_code = investor_codes.get(target_investor, "00")
+        
         formatted_date = selected_date.strftime("%Y-%m-%d")
-        excel_filename = f"MajorsNetBuy-{market_suffix}-{formatted_date}.xlsx"
+        excel_filename = f"MajorsNetBuy-{market_suffix}-{investor_code}-{formatted_date}.xlsx"
         
         excel_buffer = io.BytesIO()
         with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
