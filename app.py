@@ -16,8 +16,24 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-st.markdown("<h1 style='color: #1E3A8A;'>한국 증시 외국인/기관 수급 스크리너</h1>", unsafe_allow_html=True)
-st.markdown("<p style='color: #6B7280; font-size: 1.1rem; margin-top: -5px; margin-bottom: 15px;'>최근 N일 동안의 외국인 및 기관 순매수 데이터 분석, 수급 집중 유망 종목 발굴 프로그램</p>", unsafe_allow_html=True)
+st.markdown("""
+<style>
+    .main-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #8AB4F8; /* 연파랑색 */
+        margin-bottom: 0.2rem;
+    }
+    .sub-title {
+        font-size: 1rem;
+        color: #BDC1C6; /* 밝은 회색 */
+        margin-bottom: 2rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown('<div class="main-title">한국 증시 외국인/기관 수급 스크리너</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-title">최근 N일 동안의 외국인 및 기관 순매수 데이터 분석, 수급 집중 유망 종목 발굴 프로그램</div>', unsafe_allow_html=True)
 
 # 세션 상태 초기화 (결과 캐싱용)
 if "screened_df" not in st.session_state:
