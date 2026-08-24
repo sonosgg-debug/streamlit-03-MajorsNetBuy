@@ -75,7 +75,7 @@ st.sidebar.subheader("수급 상세 조건")
 target_investor = st.sidebar.selectbox(
     "주 분석 수급 주체", 
     ["연기금", "투신", "사모", "금융투자", "기관합계", "외국인", "외국인+투신+연기금"], 
-    index=0
+    index=6
 )
 
 accum_days = st.sidebar.slider("누적 수급 계산 기간 N (일)", min_value=1, max_value=60, value=5)
