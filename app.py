@@ -19,14 +19,16 @@ st.set_page_config(
 st.markdown("""
 <style>
     .main-title {
-        font-size: 2.2rem;
+        font-size: 2.1rem;
         font-weight: 700;
         color: #8AB4F8; /* 연파랑색 */
+        text-align: center;
         margin-bottom: 0.2rem;
     }
     .sub-title {
-        font-size: 1rem;
+        font-size: 0.92rem;
         color: #BDC1C6; /* 밝은 회색 */
+        text-align: center;
         margin-bottom: 2rem;
     }
 </style>
