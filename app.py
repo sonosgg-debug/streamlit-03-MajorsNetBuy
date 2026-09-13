@@ -308,7 +308,14 @@ if st.session_state.screened_df is not None:
                     fig.update_layout(
                         title=f"{selected_name} ({selected_ticker}) 주가 및 누적 수급 흐름",
                         xaxis_title="날짜",
-                        legend=dict(x=0.01, y=0.99, bgcolor="rgba(255,255,255,0.8)"),
+                        legend=dict(
+                            x=0.01,
+                            y=0.99,
+                            bgcolor="rgba(30, 36, 48, 0.85)",
+                            bordercolor="#3E4C5E",
+                            borderwidth=1,
+                            font=dict(color="#E2E8F0", size=11)
+                        ),
                         hovermode="x unified",
                         height=600
                     )
