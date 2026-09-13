@@ -45,6 +45,11 @@ st.markdown("""
         margin-top: 1.2rem;
         margin-bottom: 0.5rem;
     }
+    /* 엑셀 다운로드 버튼 우측 정렬 */
+    .stDownloadButton {
+        display: flex;
+        justify-content: flex-end;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -142,15 +147,11 @@ if run_button:
 if st.session_state.screened_df is not None:
     df_res = st.session_state.screened_df
     
-    st.markdown(f'<div class="section-title">스크리닝 결과 (총 {len(df_res)}개 종목)</div>', unsafe_allow_html=True)
-    
     if df_res.empty:
+        st.markdown(f'<div class="section-title">스크리닝 결과 (총 0개 종목)</div>', unsafe_allow_html=True)
         st.info("조건에 부합하는 종목이 없습니다. 필터 임계치를 조절해 보세요.")
     else:
-        # 데이터프레임 렌더링
-        st.dataframe(df_res, use_container_width=True)
-        
-        # Excel 다운로드 기능
+        # Excel 다운로드 기능 (사전 생성)
         market_suffixes = {
             "ALL": "ALL",
             "KOSPI": "KS",
@@ -222,12 +223,21 @@ if st.session_state.screened_df is not None:
                 
         excel_data = excel_buffer.getvalue()
         
-        st.download_button(
-            label="📥 엑셀 파일 다운로드",
-            data=excel_data,
-            file_name=excel_filename,
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+        # 타이틀과 엑셀 다운로드 버튼을 같은 라인에 배치 (다운로드 버튼은 오른쪽 끝에 정렬)
+        col_title, col_btn = st.columns([3, 1], vertical_alignment="bottom")
+        with col_title:
+            st.markdown(f'<div class="section-title">스크리닝 결과 (총 {len(df_res)}개 종목)</div>', unsafe_allow_html=True)
+        with col_btn:
+            st.download_button(
+                label="📥 엑셀 파일 다운로드",
+                data=excel_data,
+                file_name=excel_filename,
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=False
+            )
+        
+        # 데이터프레임 렌더링
+        st.dataframe(df_res, use_container_width=True)
         
         st.markdown("---")
         st.markdown('<div class="section-title">개별 종목 수급 상세 분석 (Plotly 시각화)</div>', unsafe_allow_html=True)
