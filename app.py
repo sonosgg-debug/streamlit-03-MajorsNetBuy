@@ -31,6 +31,20 @@ st.markdown("""
         text-align: center;
         margin-bottom: 2rem;
     }
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #8AB4F8;
+        margin-top: 1.2rem;
+        margin-bottom: 0.6rem;
+    }
+    .sub-section-title {
+        font-size: 1.0rem;
+        font-weight: 700;
+        color: #8AB4F8;
+        margin-top: 1.2rem;
+        margin-bottom: 0.5rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -128,7 +142,7 @@ if run_button:
 if st.session_state.screened_df is not None:
     df_res = st.session_state.screened_df
     
-    st.subheader(f"📈 스크리닝 결과 (총 {len(df_res)}개 종목 발굴)")
+    st.markdown(f'<div class="section-title">스크리닝 결과 (총 {len(df_res)}개 종목)</div>', unsafe_allow_html=True)
     
     if df_res.empty:
         st.info("조건에 부합하는 종목이 없습니다. 필터 임계치를 조절해 보세요.")
@@ -209,14 +223,14 @@ if st.session_state.screened_df is not None:
         excel_data = excel_buffer.getvalue()
         
         st.download_button(
-            label="📥 스크리닝 결과 엑셀 다운로드",
+            label="📥 엑셀 파일 다운로드",
             data=excel_data,
             file_name=excel_filename,
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
         
         st.markdown("---")
-        st.subheader("🔍 개별 종목 수급 상세 분석 (Plotly 시각화)")
+        st.markdown('<div class="section-title">개별 종목 수급 상세 분석 (Plotly 시각화)</div>', unsafe_allow_html=True)
         
         # 종목 선택
         tickers_list = [f"{ticker} | {row['종목명']}" for ticker, row in df_res.iterrows()]
@@ -305,7 +319,7 @@ if st.session_state.screened_df is not None:
                     st.plotly_chart(fig, use_container_width=True)
                     
                     # 당일의 수급 주체별 상세 표 제공
-                    st.markdown("##### 📅 수급 주체별 당일 순매수 상세")
+                    st.markdown('<div class="sub-section-title">수급 주체별 당일 순매수 상세</div>', unsafe_allow_html=True)
                     today_data = df_series.iloc[-1]
                     df_today_inv = pd.DataFrame(today_data).rename(columns={today_data.name: "순매수대금(원)"})
                     df_today_inv["순매수대금(억)"] = (df_today_inv["순매수대금(원)"] / 100000000).round(2)
