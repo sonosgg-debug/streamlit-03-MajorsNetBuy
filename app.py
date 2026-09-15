@@ -45,6 +45,19 @@ st.markdown("""
         margin-top: 1.2rem;
         margin-bottom: 0.5rem;
     }
+    /* 주 분석 수급 주체 표시 뱃지 */
+    .investor-badge {
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.84rem;
+        font-weight: 600;
+        color: #38bdf8;
+        background-color: rgba(56, 189, 248, 0.12);
+        border: 1px solid rgba(56, 189, 248, 0.35);
+        padding: 0.2rem 0.65rem;
+        border-radius: 20px;
+        vertical-align: middle;
+    }
     /* 엑셀 다운로드 버튼 우측 정렬 */
     .stDownloadButton {
         display: flex;
@@ -218,16 +231,28 @@ if run_button:
                     require_dual_buy=require_dual
                 )
                 st.session_state.screened_df = df_result
+                st.session_state.screened_investor = target_investor
+                st.session_state.screened_market = market
+                st.session_state.screened_date = selected_date
             except Exception as e:
                 st.error(f"스크리닝 실행 중 에러가 발생했습니다: {e}")
 
 # 스크리닝 결과 표시
 if st.session_state.screened_df is not None:
     df_res = st.session_state.screened_df
+    current_investor = st.session_state.get("screened_investor", target_investor)
+    current_market = st.session_state.get("screened_market", market)
+    current_date = st.session_state.get("screened_date", selected_date)
     
     if df_res.empty:
-        st.markdown(f'<div class="section-title">스크리닝 결과 (총 0개 종목)</div>', unsafe_allow_html=True)
-        st.info("조건에 부합하는 종목이 없습니다. 필터 임계치를 조절해 보세요.")
+        st.markdown(
+            f'<div class="section-title" style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">'
+            f'<span>스크리닝 결과 (총 0개 종목)</span>'
+            f'<span class="investor-badge">🎯 주 분석 수급 주체: {current_investor}</span>'
+            f'</div>', 
+            unsafe_allow_html=True
+        )
+        st.info(f"선택하신 주 분석 수급 주체({current_investor}) 조건에 부합하는 종목이 없습니다. 필터 임계치를 조절해 보세요.")
     else:
         # Excel 다운로드 기능 (사전 생성)
         market_suffixes = {
@@ -235,7 +260,7 @@ if st.session_state.screened_df is not None:
             "KOSPI": "KS",
             "KOSDAQ": "KQ"
         }
-        market_suffix = market_suffixes.get(market, "ALL")
+        market_suffix = market_suffixes.get(current_market, "ALL")
         
         investor_codes = {
             "연기금": "11",
@@ -247,9 +272,9 @@ if st.session_state.screened_df is not None:
             "외국인+연기금": "98",
             "외국인+투신+연기금": "99"
         }
-        investor_code = investor_codes.get(target_investor, "00")
+        investor_code = investor_codes.get(current_investor, "00")
         
-        formatted_date = selected_date.strftime("%Y-%m-%d")
+        formatted_date = current_date.strftime("%Y-%m-%d")
         excel_filename = f"MajorsNetBuy-{market_suffix}-{investor_code}-{formatted_date}.xlsx"
         
         excel_buffer = io.BytesIO()
@@ -305,7 +330,14 @@ if st.session_state.screened_df is not None:
         # 타이틀과 엑셀 다운로드 버튼을 같은 라인에 배치 (다운로드 버튼은 오른쪽 끝에 정렬)
         col_title, col_btn = st.columns([3, 1], vertical_alignment="bottom")
         with col_title:
-            st.markdown(f'<div class="section-title">스크리닝 결과 (총 {len(df_res)}개 종목)</div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="section-title" style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">'
+                f'<span>스크리닝 결과 (총 {len(df_res)}개 종목)</span>'
+                f'<span class="investor-badge">🎯 주 분석 수급 주체: {current_investor}</span>'
+                f'</div>', 
+                unsafe_allow_html=True
+            )
+            st.caption(f"💡 기준일: **{formatted_date}** | 시장: **{market_suffix}** | 주 분석 수급 주체: **{current_investor}**")
         with col_btn:
             st.download_button(
                 label="📥 엑셀 파일 다운로드",
