@@ -96,9 +96,9 @@ def fetch_investor_net_purchases_with_cache(start_date, end_date, market="ALL", 
     start_date = get_nearest_business_day(start_date)
     end_date = get_nearest_business_day(end_date)
     
-    # 외국인+투신+연기금 3대 주체 합산 처리
-    if investor == "외국인+투신+연기금":
-        sub_investors = ["외국인", "투신", "연기금"]
+    # 복합 주체 합산 처리 (외국인+연기금, 외국인+투신+연기금 등)
+    if "+" in investor:
+        sub_investors = [sub.strip() for sub in investor.split("+")]
         dfs = []
         for sub in sub_investors:
             df_sub = fetch_investor_net_purchases_with_cache(start_date, end_date, market=market, investor=sub)
