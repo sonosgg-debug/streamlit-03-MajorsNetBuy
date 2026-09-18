@@ -177,7 +177,7 @@ if not st.session_state.auth_status:
 st.sidebar.header("⚙️ 2. 스크리닝 필터 설정")
 
 # 시장 구분
-market = st.sidebar.selectbox("시장 선택", ["ALL", "KOSPI", "KOSDAQ"], index=0)
+market = st.sidebar.selectbox("시장 선택", ["ALL", "KOSPI", "KOSDAQ"], index=1)
 
 # 시가총액/거래대금 기본 필터
 min_mkt_cap = st.sidebar.number_input("최소 시가총액 (억 원)", min_value=10, max_value=500000, value=1000, step=100)
