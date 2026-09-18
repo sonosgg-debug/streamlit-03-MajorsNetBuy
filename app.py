@@ -19,8 +19,8 @@ st.set_page_config(
 st.markdown("""
 <style>
     .main-title {
-        font-size: 2.1rem;
-        font-weight: 700;
+        font-size: 1.9rem;
+        font-weight: 800;
         color: #8AB4F8; /* 연파랑색 */
         text-align: center;
         margin-bottom: 0.2rem;
