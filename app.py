@@ -18,13 +18,35 @@ st.set_page_config(
 
 st.markdown("""
 <style>
+    .main .block-container,
+    [data-testid="stMainBlockContainer"],
+    .block-container {
+        padding-top: 2.0rem !important;
+    }
     .main-title {
-        font-size: 1.9rem !important;
+        font-size: 2.0rem !important;
         font-weight: 800 !important;
         color: #8AB4F8 !important;
         -webkit-text-fill-color: #8AB4F8 !important;
         text-align: center !important;
         margin-bottom: 0.2rem;
+    }
+    /* Primary button style */
+    .stButton button[kind="primary"],
+    .stButton > button[kind="primary"],
+    section[data-testid="stSidebar"] button[kind="primary"] {
+        background-color: #2563eb !important;
+        color: #ffffff !important;
+        border: none !important;
+        font-weight: 600 !important;
+        border-radius: 6px !important;
+        transition: all 0.2s ease !important;
+    }
+    .stButton button[kind="primary"]:hover,
+    .stButton > button[kind="primary"]:hover,
+    section[data-testid="stSidebar"] button[kind="primary"]:hover {
+        background-color: #1d4ed8 !important;
+        box-shadow: 0 0 10px rgba(37, 99, 235, 0.4) !important;
     }
     .sub-title {
         font-size: 0.92rem;
@@ -212,7 +234,7 @@ with col_date:
 
 with col_btn:
     st.markdown("<br>", unsafe_allow_html=True)
-    run_button = st.button("🔍 스크리닝 실행", use_container_width=True)
+    run_button = st.button("🔍 스크리닝 시작", type="primary", use_container_width=True)
 
 if run_button:
     if not st.session_state.auth_status:
@@ -453,3 +475,6 @@ if st.session_state.screened_df is not None:
                     df_today_inv = pd.DataFrame(today_data).rename(columns={today_data.name: "순매수대금(원)"})
                     df_today_inv["순매수대금(억)"] = (df_today_inv["순매수대금(원)"] / 100000000).round(2)
                     st.dataframe(df_today_inv[["순매수대금(억)"]].T, use_container_width=True)
+
+st.markdown("---")
+st.markdown("<div style='text-align: center; color: #64748b; font-size: 0.8rem; margin-top: 8px; margin-bottom: 24px; line-height: 1.6;'>⚠️ 본 서비스에서 제공하는 모든 정보는 투자 참고용이며, 투자의 최종 결정과 책임은 투자자 본인에게 있습니다.</div>", unsafe_allow_html=True)
