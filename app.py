@@ -212,7 +212,7 @@ with col_date:
 
 with col_btn:
     st.markdown("<br>", unsafe_allow_html=True)
-    run_button = st.button("🔍 종목 스크리닝 실행", use_container_width=True)
+    run_button = st.button("🔍 스크리닝 실행", use_container_width=True)
 
 if run_button:
     if not st.session_state.auth_status:
