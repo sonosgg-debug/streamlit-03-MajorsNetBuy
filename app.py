@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import os
 
-from data_loader import setup_krx_auth, fetch_daily_net_purchases_series
+from data_loader import setup_krx_auth, fetch_daily_net_purchases_series, get_nearest_business_day
 from screener import StockScreener
 
 # 페이지 설정
@@ -227,8 +227,9 @@ require_dual = st.sidebar.checkbox("당일 외인+기관 양매수 필수", valu
 col_date, col_btn = st.columns([3, 1])
 
 with col_date:
-    # 조회 날짜 선택 (기본값: 오늘)
-    default_date = datetime.date.today()
+    # 조회 날짜 선택 (기본값: 가장 최근 마감 완료된 영업일)
+    default_bday_str = get_nearest_business_day()
+    default_date = datetime.datetime.strptime(default_bday_str, "%Y%m%d").date()
     selected_date = st.date_input("스크리닝 기준일", default_date)
     target_date_str = selected_date.strftime("%Y%m%d")
 

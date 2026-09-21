@@ -27,20 +27,30 @@ def setup_krx_auth(krx_id, krx_pw):
             print(f"KRX Auth Setup Error: {e}")
     return False
 
+def get_now_kst():
+    """한국 표준시(KST, UTC+9) datetime 객체 반환"""
+    now_utc = datetime.datetime.now(datetime.timezone.utc)
+    return now_utc + datetime.timedelta(hours=9)
+
 def get_nearest_business_day(date_str=None):
     """
     주어진 날짜 또는 현재 날짜 기준 가장 가까운 최근 영업일(평일)을 YYYYMMDD 형태로 반환합니다.
+    - date_str이 없는 경우: KST 기준 평일 16:00 이전 또는 주말에는 '직전 평일(최신 마감 영업일)'을 반환
+    - date_str이 있는 경우: 주말인 경우 직전 금요일로 조정
     """
     if date_str:
         dt = datetime.datetime.strptime(date_str, "%Y%m%d")
-    else:
-        dt = datetime.datetime.now()
+        while dt.weekday() >= 5:
+            dt -= datetime.timedelta(days=1)
+        return dt.strftime("%Y%m%d")
     
-    # 주말인 경우 금요일로 조정 (5: 토요일, 6: 일요일)
-    while dt.weekday() >= 5:
-        dt -= datetime.timedelta(days=1)
-        
-    return dt.strftime("%Y%m%d")
+    now_kst = get_now_kst()
+    start_offset = 0 if (now_kst.weekday() < 5 and now_kst.hour >= 16) else 1
+    for i in range(start_offset, start_offset + 10):
+        d = now_kst - datetime.timedelta(days=i)
+        if d.weekday() < 5:
+            return d.strftime("%Y%m%d")
+    return (now_kst - datetime.timedelta(days=1)).strftime("%Y%m%d")
 
 def fetch_market_cap_with_cache(date_str, market="ALL"):
     """
@@ -51,7 +61,7 @@ def fetch_market_cap_with_cache(date_str, market="ALL"):
     cache_path = os.path.join(CACHE_DIR, f"mkt_cap_{market}_{date_str}.pkl")
     
     # 오늘 또는 미래 날짜는 캐시하지 않음
-    today_str = datetime.datetime.now().strftime("%Y%m%d")
+    today_str = get_now_kst().strftime("%Y%m%d")
     is_today = (date_str >= today_str)
     
     if not is_today and os.path.exists(cache_path):
@@ -130,7 +140,7 @@ def fetch_investor_net_purchases_with_cache(start_date, end_date, market="ALL", 
     cache_key = f"net_buy_{investor}_{market}_{start_date}_{end_date}.pkl"
     cache_path = os.path.join(CACHE_DIR, cache_key)
     
-    today_str = datetime.datetime.now().strftime("%Y%m%d")
+    today_str = get_now_kst().strftime("%Y%m%d")
     is_live = (end_date >= today_str)
     
     if not is_live and os.path.exists(cache_path):
@@ -163,7 +173,7 @@ def fetch_daily_net_purchases_series(start_date, end_date, ticker):
     end_date = get_nearest_business_day(end_date)
     
     cache_path = os.path.join(CACHE_DIR, f"daily_series_{ticker}_{start_date}_{end_date}.pkl")
-    today_str = datetime.datetime.now().strftime("%Y%m%d")
+    today_str = get_now_kst().strftime("%Y%m%d")
     is_live = (end_date >= today_str)
     
     if not is_live and os.path.exists(cache_path):
