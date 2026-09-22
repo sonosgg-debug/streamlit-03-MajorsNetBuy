@@ -16,21 +16,66 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-st.markdown("""
+st.html("""
 <style>
+    /* 전체 배경 및 폰트 */
+    .stApp {
+        background-color: #0f172a;
+        color: #f8fafc;
+        font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", sans-serif;
+    }
+
+    /* Streamlit 고정 상단 헤더 배경 투명화 (상단 바 간섭 및 글자 잘림 방지) */
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+    }
+
+    /* 화면 상단 패딩 표준화 (2.0rem) */
     .main .block-container,
     [data-testid="stMainBlockContainer"],
     .block-container {
         padding-top: 2.0rem !important;
+        padding-bottom: 3.5rem !important;
+        max-width: 100% !important;
     }
-    .main-title {
+
+    /* 사이드바 배경 및 테두리 */
+    section[data-testid="stSidebar"] {
+        background-color: #1e293b !important;
+        border-right: 1px solid #334155;
+    }
+
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3 {
+        color: #f8fafc !important;
+    }
+
+    /* 메인 타이틀 영역 안전 여백 및 스타일링 (Streamlit 상단 바 간섭 방지) */
+    .main-title-container {
+        padding-top: 1.0rem !important;
+        text-align: center !important;
+    }
+
+    h1, .main h1, [data-testid="stHeadingWithActionElements"] h1, .main-title {
         font-size: 2.0rem !important;
         font-weight: 800 !important;
         color: #8AB4F8 !important;
         -webkit-text-fill-color: #8AB4F8 !important;
         text-align: center !important;
-        margin-bottom: 0.2rem;
+        line-height: 1.35 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0.3rem !important;
     }
+
+    .sub-title {
+        font-size: 0.92rem !important;
+        color: #94a3b8 !important;
+        text-align: center !important;
+        margin-bottom: 16px !important;
+        line-height: 1.5 !important;
+    }
+
     /* Primary button style */
     .stButton button[kind="primary"],
     .stButton > button[kind="primary"],
@@ -47,12 +92,6 @@ st.markdown("""
     section[data-testid="stSidebar"] button[kind="primary"]:hover {
         background-color: #1d4ed8 !important;
         box-shadow: 0 0 10px rgba(37, 99, 235, 0.4) !important;
-    }
-    .sub-title {
-        font-size: 0.92rem;
-        color: #BDC1C6; /* 밝은 회색 */
-        text-align: center;
-        margin-bottom: 2rem;
     }
     .section-title {
         font-size: 1.25rem;
@@ -165,10 +204,16 @@ st.markdown("""
         font-size: 1.35rem !important;
     }
 </style>
-""", unsafe_allow_html=True)
+""")
 
-st.markdown('<div class="main-title">한국 증시 외국인/기관 수급 스크리너</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">최근 N일 동안의 외국인 및 기관 순매수 데이터 분석, 수급 집중 유망 종목 발굴 프로그램</div>', unsafe_allow_html=True)
+# 메인 타이틀 및 서브타이틀 (00 Memo_AI_Template 표준 규격 적용)
+st.html("""
+<div class="main-title-container">
+    <h1 class="main-title">한국 증시 외국인/기관 수급 스크리너</h1>
+    <div class="sub-title">최근 N일 동안의 외국인 및 기관 순매수 데이터 분석, 수급 집중 유망 종목 발굴 프로그램</div>
+    <hr style='border: 0; height: 1px; background-color: #334155; margin-bottom: 22px;'>
+</div>
+""")
 
 # 세션 상태 초기화 (결과 캐싱용)
 if "screened_df" not in st.session_state:
@@ -477,5 +522,10 @@ if st.session_state.screened_df is not None:
                     df_today_inv["순매수대금(억)"] = (df_today_inv["순매수대금(원)"] / 100000000).round(2)
                     st.dataframe(df_today_inv[["순매수대금(억)"]].T, use_container_width=True)
 
-st.markdown("---")
-st.markdown("<div style='text-align: center; color: #64748b; font-size: 0.8rem; margin-top: 8px; margin-bottom: 24px; line-height: 1.6;'>⚠️ 본 서비스에서 제공하는 모든 정보는 투자 참고용이며, 투자의 최종 결정과 책임은 투자자 본인에게 있습니다.</div>", unsafe_allow_html=True)
+st.markdown("<hr style='border: 0; height: 1px; background-color: #334155; margin: 30px 0 10px 0;'>", unsafe_allow_html=True)
+st.markdown(
+    "<div style='text-align: center; color: #64748b; font-size: 0.8rem; margin-top: 8px; margin-bottom: 24px; line-height: 1.6;'>"
+    "⚠️ 본 서비스에서 제공하는 모든 정보는 투자 참고용이며, 투자의 최종 결정과 책임은 투자자 본인에게 있습니다."
+    "</div>",
+    unsafe_allow_html=True
+)
