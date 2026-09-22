@@ -16,64 +16,45 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-st.html("""
+st.markdown("""
 <style>
     /* 전체 배경 및 폰트 */
     .stApp {
         background-color: #0f172a;
         color: #f8fafc;
-        font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", sans-serif;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
 
-    /* Streamlit 고정 상단 헤더 배경 투명화 (상단 바 간섭 및 글자 잘림 방지) */
+    /* Streamlit 고정 상단 헤더 배경 투명화 */
     header[data-testid="stHeader"] {
         background: transparent !important;
     }
 
-    /* 화면 상단 패딩 표준화 (2.0rem) */
+    /* 메인 컨테이너 패딩 조절 */
     .main .block-container,
     [data-testid="stMainBlockContainer"],
     .block-container {
         padding-top: 2.0rem !important;
         padding-bottom: 3.5rem !important;
-        max-width: 100% !important;
     }
 
-    /* 사이드바 배경 및 테두리 */
+    /* 사이드바 스타일링 */
     section[data-testid="stSidebar"] {
         background-color: #1e293b !important;
         border-right: 1px solid #334155;
     }
 
-    section[data-testid="stSidebar"] h1,
-    section[data-testid="stSidebar"] h2,
-    section[data-testid="stSidebar"] h3 {
-        color: #f8fafc !important;
-    }
-
-    /* 메인 타이틀 영역 안전 여백 및 스타일링 (Streamlit 상단 바 간섭 방지) */
-    .main-title-container {
-        padding-top: 1.0rem !important;
-        text-align: center !important;
-    }
-
-    h1, .main h1, [data-testid="stHeadingWithActionElements"] h1, .main-title {
+    /* 헤더 및 타이틀 색상 (#8AB4F8) */
+    h1, .app-main-title {
+        color: #8AB4F8 !important;
         font-size: 2.0rem !important;
         font-weight: 800 !important;
-        color: #8AB4F8 !important;
-        -webkit-text-fill-color: #8AB4F8 !important;
-        text-align: center !important;
-        line-height: 1.35 !important;
-        margin-top: 0 !important;
-        margin-bottom: 0.3rem !important;
+        letter-spacing: -0.5px;
     }
 
-    .sub-title {
-        font-size: 0.92rem !important;
-        color: #94a3b8 !important;
-        text-align: center !important;
-        margin-bottom: 16px !important;
-        line-height: 1.5 !important;
+    h2, h3, h4 {
+        color: #f8fafc !important;
+        font-weight: 700 !important;
     }
 
     /* Primary button style */
@@ -204,16 +185,24 @@ st.html("""
         font-size: 1.35rem !important;
     }
 </style>
-""")
+""", unsafe_allow_html=True)
 
-# 메인 타이틀 및 서브타이틀 (00 Memo_AI_Template 표준 규격 적용)
-st.html("""
-<div class="main-title-container">
-    <h1 class="main-title">한국 증시 외국인/기관 수급 스크리너</h1>
-    <div class="sub-title">최근 N일 동안의 외국인 및 기관 순매수 데이터 분석, 수급 집중 유망 종목 발굴 프로그램</div>
-    <hr style='border: 0; height: 1px; background-color: #334155; margin-bottom: 22px;'>
-</div>
-""")
+# 메인 타이틀 영역 (Multi-Indicator Ensemble 표준 일체화)
+st.markdown(
+    "<h1 style='text-align: center; font-size: 2.0rem; font-weight: 800; line-height: 1.35; margin: 0 0 8px 0; color: #8AB4F8 !important;'>"
+    "한국 증시 외국인/기관 수급 스크리너"
+    "</h1>",
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    "<div style='text-align: center; font-size: 0.95rem; color: #cbd5e1; margin-bottom: 20px; line-height: 1.5;'>"
+    "최근 N일 동안의 외국인 및 기관 순매수 데이터 분석, 수급 집중 유망 종목 발굴 프로그램"
+    "</div>",
+    unsafe_allow_html=True
+)
+
+st.markdown("<hr style='border: 0; height: 1px; background-color: #334155; margin: 18px 0 22px 0;'>", unsafe_allow_html=True)
 
 # 세션 상태 초기화 (결과 캐싱용)
 if "screened_df" not in st.session_state:
