@@ -483,24 +483,35 @@ if st.session_state.screened_df is not None:
                                 secondary_y=True
                             )
                             
-                    # 차트 레이아웃 조정
+                    # 차트 레이아웃 조정 (고대비 Tailwind Slate 표준 테마)
                     fig.update_layout(
-                        title=f"{selected_name} ({selected_ticker}) 주가 및 누적 수급 흐름",
-                        xaxis_title="날짜",
+                        template="plotly_dark",
+                        paper_bgcolor="#1E293B",
+                        plot_bgcolor="#0F172A",
+                        title=dict(
+                            text=f"<b>{selected_name} ({selected_ticker}) 주가 및 누적 수급 흐름</b>",
+                            font=dict(color="#F8FAFC", size=16)
+                        ),
+                        xaxis=dict(
+                            title="날짜",
+                            gridcolor="#334155",
+                            linecolor="#475569",
+                            tickfont=dict(color="#cbd5e1")
+                        ),
                         legend=dict(
                             x=0.01,
                             y=0.99,
-                            bgcolor="rgba(30, 36, 48, 0.85)",
-                            bordercolor="#3E4C5E",
+                            bgcolor="rgba(30, 41, 59, 0.85)",
+                            bordercolor="#334155",
                             borderwidth=1,
-                            font=dict(color="#E2E8F0", size=11)
+                            font=dict(color="#F8FAFC", size=11)
                         ),
                         hovermode="x unified",
                         height=600
                     )
                     
-                    fig.update_yaxes(title_text="주가 (원)", secondary_y=False)
-                    fig.update_yaxes(title_text="누적 순매수 대금 (억 원)", secondary_y=True)
+                    fig.update_yaxes(title_text="주가 (원)", secondary_y=False, gridcolor="#334155", linecolor="#475569", tickfont=dict(color="#cbd5e1"))
+                    fig.update_yaxes(title_text="누적 순매수 대금 (억 원)", secondary_y=True, showgrid=False, linecolor="#475569", tickfont=dict(color="#cbd5e1"))
                     
                     st.plotly_chart(fig, use_container_width=True)
                     
