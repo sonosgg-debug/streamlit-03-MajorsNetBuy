@@ -256,51 +256,52 @@ if "auth_status" not in st.session_state:
     st.session_state.auth_status = False
 
 # ================= SIDEBAR =================
-st.sidebar.header("🔑 1. KRX 세션 설정")
+with st.sidebar:
+    st.header("🔑 KRX 로그인 설정")
 
+    krx_id = st.text_input("KRX ID", value=os.getenv("KRX_ID", ""))
+    krx_pw = st.text_input("KRX Password", type="password", value=os.getenv("KRX_PW", ""))
 
-krx_id = st.sidebar.text_input("KRX ID", value=os.getenv("KRX_ID", ""))
-krx_pw = st.sidebar.text_input("KRX Password", type="password", value=os.getenv("KRX_PW", ""))
+    if st.button("🔑 세션 연결 및 로그인", use_container_width=True):
+        with st.spinner("KRX 로그인 세션 설정 중..."):
+            success = setup_krx_auth(krx_id, krx_pw)
+            st.session_state.auth_status = success
+            if success:
+                st.success("✅ KRX 로그인 연동 성공!")
+            else:
+                st.error("❌ 로그인 실패 (아이디/비번 혹은 IP 차단 상태 확인)")
 
-if st.sidebar.button("세션 연결 및 로그인"):
-    with st.spinner("KRX 로그인 세션 설정 중..."):
-        success = setup_krx_auth(krx_id, krx_pw)
-        st.session_state.auth_status = success
-        if success:
-            st.sidebar.success("✅ KRX 로그인 연동 성공!")
-        else:
-            st.sidebar.error("❌ 로그인 실패 (아이디/비번 혹은 IP 차단 상태 확인)")
+    st.markdown("---")
+    st.header("⚙️ 스크리닝 필터 설정")
 
-# 로그인 안된 상태에서 경고 안내
+    # 시장 구분
+    market = st.selectbox("시장 선택", ["ALL", "KOSPI", "KOSDAQ"], index=1)
+
+    # 시가총액/거래대금 기본 필터
+    min_mkt_cap = st.number_input("최소 시가총액 (억 원)", min_value=10, max_value=500000, value=1000, step=100)
+    min_turnover = st.number_input("최소 5일 평균 거래대금 (억 원)", min_value=0, max_value=50000, value=20, step=5)
+
+    # 수급 주체 및 세부 필터
+    st.subheader("🎯 수급 상세 조건")
+    target_investor = st.selectbox(
+        "주 분석 수급 주체", 
+        ["연기금", "투신", "사모", "금융투자", "기관합계", "외국인", "외국인+연기금", "외국인+투신+연기금"], 
+        index=6
+    )
+
+    accum_days = st.slider("누적 수급 계산 기간 N (일)", min_value=1, max_value=60, value=5)
+    min_accum_intensity = st.slider("시총 대비 누적 매집 비율 (%)", min_value=0.01, max_value=5.0, value=0.2, step=0.05)
+
+    # Z-Score 조건
+    min_zscore = st.slider("당일 수급 Z-Score 최소치", min_value=-1.0, max_value=5.0, value=1.5, step=0.1)
+    zscore_lookback = st.slider("Z-Score 산출 룩백 기간 M (일)", min_value=5, max_value=60, value=20)
+
+    # 양매수 필수 여부
+    require_dual = st.checkbox("당일 외인+기관 양매수 필수", value=False)
+
+# 로그인 안된 상태에서 메인 화면 경고 안내
 if not st.session_state.auth_status:
     st.warning("⚠️ KRX 로그인 세션이 연동되지 않았습니다. 분석 시작 전 사이드바에서 로그인을 진행해 주세요.")
-
-st.sidebar.header("⚙️ 2. 스크리닝 필터 설정")
-
-# 시장 구분
-market = st.sidebar.selectbox("시장 선택", ["ALL", "KOSPI", "KOSDAQ"], index=1)
-
-# 시가총액/거래대금 기본 필터
-min_mkt_cap = st.sidebar.number_input("최소 시가총액 (억 원)", min_value=10, max_value=500000, value=1000, step=100)
-min_turnover = st.sidebar.number_input("최소 5일 평균 거래대금 (억 원)", min_value=0, max_value=50000, value=20, step=5)
-
-# 수급 주체 및 세부 필터
-st.sidebar.subheader("수급 상세 조건")
-target_investor = st.sidebar.selectbox(
-    "주 분석 수급 주체", 
-    ["연기금", "투신", "사모", "금융투자", "기관합계", "외국인", "외국인+연기금", "외국인+투신+연기금"], 
-    index=6
-)
-
-accum_days = st.sidebar.slider("누적 수급 계산 기간 N (일)", min_value=1, max_value=60, value=5)
-min_accum_intensity = st.sidebar.slider("시총 대비 누적 매집 비율 (%)", min_value=0.01, max_value=5.0, value=0.2, step=0.05)
-
-# Z-Score 조건
-min_zscore = st.sidebar.slider("당일 수급 Z-Score 최소치", min_value=-1.0, max_value=5.0, value=1.5, step=0.1)
-zscore_lookback = st.sidebar.slider("Z-Score 산출 룩백 기간 M (일)", min_value=5, max_value=60, value=20)
-
-# 양매수 필수 여부
-require_dual = st.sidebar.checkbox("당일 외인+기관 양매수 필수", value=False)
 
 # ================= MAIN PAGE =================
 col_date, col_btn = st.columns([3, 1])
