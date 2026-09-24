@@ -6,7 +6,12 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import os
 
-from data_loader import setup_krx_auth, fetch_daily_net_purchases_series, get_nearest_business_day
+from data_loader import (
+    setup_krx_auth,
+    fetch_daily_net_purchases_series,
+    get_nearest_business_day,
+    is_krx_trading_day
+)
 from screener import StockScreener
 
 # 페이지 설정
@@ -321,11 +326,17 @@ if not st.session_state.auth_status:
 col_date, col_btn = st.columns([3, 1])
 
 with col_date:
-    # 조회 날짜 선택 (기본값: 가장 최근 마감 완료된 영업일)
+    # 조회 날짜 선택 (기본값: 가장 최근 마감 완료된 실제 거래일)
     default_bday_str = get_nearest_business_day()
     default_date = datetime.datetime.strptime(default_bday_str, "%Y%m%d").date()
     selected_date = st.date_input("스크리닝 기준일", default_date)
     target_date_str = selected_date.strftime("%Y%m%d")
+
+    # 선택된 날짜가 거래소 휴장일인지 검사 및 안내
+    actual_target_bday = get_nearest_business_day(target_date_str)
+    if not is_krx_trading_day(target_date_str):
+        act_date_fmt = datetime.datetime.strptime(actual_target_bday, "%Y%m%d").strftime("%Y-%m-%d")
+        st.info(f"💡 선택하신 기준일({selected_date.strftime('%Y-%m-%d')})은 증시 휴장일(공휴일/주말)입니다. 가장 최근 거래일인 **{act_date_fmt}** 데이터로 자동 보정하여 분석합니다.")
 
 with col_btn:
     st.markdown("<br>", unsafe_allow_html=True)
@@ -337,7 +348,9 @@ if run_button:
     else:
         with st.spinner("KRX 데이터를 로드하고 지표를 계산 중입니다. 캐시가 없는 날짜는 시간이 다소 소요될 수 있습니다..."):
             try:
-                screener = StockScreener(target_date=target_date_str, market=market)
+                # 휴장일일 경우 직전 실제 거래일로 안전하게 적용
+                target_bday = actual_target_bday
+                screener = StockScreener(target_date=target_bday, market=market)
                 df_result = screener.screen(
                     min_market_cap_krw=min_mkt_cap * 100000000,
                     min_turnover_5d_krw=min_turnover * 100000000,
@@ -351,7 +364,10 @@ if run_button:
                 st.session_state.screened_df = df_result
                 st.session_state.screened_investor = target_investor
                 st.session_state.screened_market = market
-                st.session_state.screened_date = selected_date
+                st.session_state.screened_date = datetime.datetime.strptime(target_bday, "%Y%m%d").date()
+                st.session_state.is_mkt_cap_empty = screener.df_mkt_cap.empty
+                st.session_state.was_holiday_adjusted = (actual_target_bday != target_date_str)
+                st.session_state.original_date_str = selected_date.strftime("%Y-%m-%d")
             except Exception as e:
                 st.error(f"스크리닝 실행 중 에러가 발생했습니다: {e}")
 
@@ -361,7 +377,13 @@ if st.session_state.screened_df is not None:
     current_investor = st.session_state.get("screened_investor", target_investor)
     current_market = st.session_state.get("screened_market", market)
     current_date = st.session_state.get("screened_date", selected_date)
+    is_mkt_cap_empty = st.session_state.get("is_mkt_cap_empty", False)
+    was_holiday_adjusted = st.session_state.get("was_holiday_adjusted", False)
+    original_date_str = st.session_state.get("original_date_str", "")
     
+    if was_holiday_adjusted:
+        st.info(f"💡 선택하셨던 일자({original_date_str})는 거래소 휴장일이므로, 가장 최근 정상 거래일인 **{current_date.strftime('%Y-%m-%d')}** 기준으로 스크리닝을 진행했습니다.")
+        
     if df_res.empty:
         st.markdown(
             f'<div class="section-title" style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">'
@@ -370,7 +392,10 @@ if st.session_state.screened_df is not None:
             f'</div>', 
             unsafe_allow_html=True
         )
-        st.info(f"선택하신 주 분석 수급 주체({current_investor}) 조건에 부합하는 종목이 없습니다. 필터 임계치를 조절해 보세요.")
+        if is_mkt_cap_empty:
+            st.warning("⚠️ 해당 기준일의 시장 데이터(시가총액/주가)를 가져오지 못했습니다. 사이드바에서 KRX 로그인 상태를 다시 확인하시거나 다른 거래일을 선택해 보세요.")
+        else:
+            st.info(f"선택하신 주 분석 수급 주체({current_investor}) 조건에 부합하는 종목이 없습니다. 필터 임계치를 조절해 보세요.")
     else:
         # Excel 다운로드 기능 (사전 생성)
         market_suffixes = {

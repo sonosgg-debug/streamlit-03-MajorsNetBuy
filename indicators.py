@@ -1,7 +1,12 @@
 import pandas as pd
 import numpy as np
 import datetime
-from data_loader import fetch_investor_net_purchases_with_cache, get_nearest_business_day
+from data_loader import (
+    fetch_investor_net_purchases_with_cache,
+    get_nearest_business_day,
+    get_krx_trading_days,
+    is_krx_trading_day
+)
 
 def calculate_dbd(df_net_buy, df_mkt_cap):
     """
@@ -51,12 +56,19 @@ def calculate_abim(df_net_buy_accum, df_mkt_cap):
 
 def get_business_days_list(start_date, end_date):
     """
-    두 날짜 사이의 영업일(평일) 목록을 반환합니다. (주말 제외)
+    두 날짜 사이의 실제 거래일 목록을 반환합니다. (주말 및 거래소 휴장일 제외)
     """
-    dates = pd.date_range(start=start_date, end=end_date)
-    # 월요일=0, 일요일=6 이므로 0~4인 평일만 필터링
-    weekday_dates = dates[dates.weekday < 5]
-    return [d.strftime("%Y%m%d") for d in weekday_dates]
+    start_str = str(start_date).replace('-', '')
+    end_str = str(end_date).replace('-', '')
+    trading_days = get_krx_trading_days(120)
+    
+    valid_days = [d for d in trading_days if start_str <= d <= end_str]
+    if valid_days:
+        return sorted(valid_days)
+        
+    # fallback
+    dates = pd.date_range(start=start_str, end=end_str)
+    return [d.strftime("%Y%m%d") for d in dates if is_krx_trading_day(d.strftime("%Y%m%d"))]
 
 def fetch_net_purchases_panel(start_date, end_date, market="ALL", investor="기관합계"):
     """

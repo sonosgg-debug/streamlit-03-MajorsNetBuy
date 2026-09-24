@@ -4,7 +4,8 @@ import numpy as np
 from data_loader import (
     fetch_market_cap_with_cache,
     fetch_investor_net_purchases_with_cache,
-    get_nearest_business_day
+    get_nearest_business_day,
+    get_krx_trading_days
 )
 from indicators import (
     calculate_dbd,
@@ -34,22 +35,23 @@ class StockScreener:
         
     def _get_historical_business_days(self, days_needed):
         """
-        기준일(target_date) 포함하여 과거로 N개의 영업일 리스트를 반환합니다.
+        기준일(target_date) 포함하여 과거로 N개의 실제 거래일 리스트를 반환합니다.
         """
-        # 넉넉하게 약 3배 기간의 일력을 생성하여 평일 필터링
+        trading_days = get_krx_trading_days(max(days_needed * 3, 120))
+        valid_days = [d for d in trading_days if d <= self.target_date]
+        if len(valid_days) >= days_needed:
+            return valid_days[-days_needed:]
+            
+        # fallback: 넉넉하게 약 3배 기간의 일력을 생성하여 평일 필터링
         start_date_dt = datetime.datetime.strptime(self.target_date, "%Y%m%d") - datetime.timedelta(days=days_needed * 3 + 10)
         start_date = start_date_dt.strftime("%Y%m%d")
         
         all_b_days = get_business_days_list(start_date, self.target_date)
-        # target_date가 포함되어 있고 역순 정렬
         if self.target_date not in all_b_days:
             all_b_days.append(self.target_date)
             all_b_days.sort()
             
-        # 기준일 이하 영업일만 필터링
         valid_days = [d for d in all_b_days if d <= self.target_date]
-        
-        # 최근순으로 정렬하여 필요한 일수만큼 슬라이싱 후 다시 날짜순 정렬
         recent_days = valid_days[-days_needed:]
         return recent_days
 
