@@ -275,7 +275,21 @@ with st.sidebar:
     st.header("⚙️ 스크리닝 필터 설정")
 
     # 시장 구분
-    market = st.selectbox("시장 선택", ["ALL", "KOSPI", "KOSDAQ"], index=1)
+    market_choice = st.radio(
+        "🏛️ 시장 선택",
+        ["코스피 (KOSPI)", "코스닥 (KOSDAQ)", "전체 (ALL)"],
+        index=0,
+        horizontal=True
+    )
+    market_map = {
+        "코스피 (KOSPI)": "KOSPI",
+        "코스닥 (KOSDAQ)": "KOSDAQ",
+        "전체 (ALL)": "ALL",
+        "KOSPI": "KOSPI",
+        "KOSDAQ": "KOSDAQ",
+        "ALL": "ALL"
+    }
+    market = market_map.get(market_choice, "KOSPI")
 
     # 시가총액/거래대금 기본 필터
     min_mkt_cap = st.number_input("최소 시가총액 (억 원)", min_value=10, max_value=500000, value=1000, step=100)
