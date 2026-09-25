@@ -44,9 +44,15 @@ st.markdown("""
     }
 
     /* 사이드바 스타일링 */
-    section[data-testid="stSidebar"] {
+    section[data-testid="stSidebar"], [data-testid="stSidebar"] {
         background-color: #1e293b !important;
-        border-right: 1px solid #334155;
+        border-right: 1px solid #334155 !important;
+    }
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3 {
+        color: #f8fafc !important;
+        -webkit-text-fill-color: #f8fafc !important;
     }
 
     /* 헤더 및 타이틀 색상 (#8AB4F8) */
@@ -262,7 +268,20 @@ if "auth_status" not in st.session_state:
 
 # ================= SIDEBAR =================
 with st.sidebar:
-    st.header("🔑 KRX 로그인 설정")
+    st.markdown(
+        """
+        <div style='padding: 2px 0 12px 0;'>
+            <div style='font-size: 1.25rem; font-weight: 700; color: #f8fafc; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px;'>
+                <span>🔑</span> KRX 로그인 및 스크리너 설정
+            </div>
+            <div style='font-size: 0.82rem; color: #94a3b8; margin-top: 4px; line-height: 1.4;'>
+                KRX 세션 연동 및 외국인/기관 수급 분석 조건을 설정합니다.
+            </div>
+        </div>
+        <hr style='border: 0; height: 1px; background-color: #334155; margin: 10px 0 16px 0;'>
+        """,
+        unsafe_allow_html=True
+    )
 
     krx_id = st.text_input("KRX ID", value=os.getenv("KRX_ID", ""))
     krx_pw = st.text_input("KRX Password", type="password", value=os.getenv("KRX_PW", ""))
@@ -276,8 +295,8 @@ with st.sidebar:
             else:
                 st.error("❌ 로그인 실패 (아이디/비번 혹은 IP 차단 상태 확인)")
 
-    st.markdown("---")
-    st.header("⚙️ 스크리닝 필터 설정")
+    st.markdown("<hr style='border: 0; height: 1px; background-color: #334155; margin: 16px 0;'>", unsafe_allow_html=True)
+    st.subheader("⚙️ 스크리닝 필터 설정")
 
     # 시장 구분
     market_choice = st.radio(
