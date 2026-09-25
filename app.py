@@ -1,3 +1,6 @@
+import socket
+socket.setdefaulttimeout(5.0)
+
 import streamlit as st
 import io
 import pandas as pd
@@ -14,9 +17,25 @@ from data_loader import (
 )
 from screener import StockScreener
 
+STANDARD_CHART_THEME = {
+    'paper_bgcolor': '#1E293B',    # Tailwind Slate-800 (외곽 카드 배경)
+    'plot_bgcolor': '#0F172A',     # Tailwind Slate-900 (내부 딥 블랙 플롯)
+    'text_main': '#F8FAFC',        # 타이틀/헤더 텍스트 (순백색)
+    'text_body': '#E2E8F0',        # 본문 및 축 라벨 (부드러운 화이트)
+    'text_muted': '#CBD5E1',       # 축 눈금 수치 텍스트 (Slate-300)
+    'grid_color': '#334155',       # 그리드 격자선 (Slate-700)
+    'border_color': '#475569',     # 축 기준선 (Slate-600)
+    'legend_bg': 'rgba(30, 41, 59, 0.85)',
+    'legend_border': '#334155',
+    'hover_bg': 'rgba(15, 23, 42, 0.9)',
+    'hover_border': '#334155'
+}
+
+
 # 페이지 설정
 st.set_page_config(
     page_title="한국 증시 메이저 수급 스크리너",
+    page_icon="🏛️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -296,7 +315,7 @@ with st.sidebar:
                 st.error("❌ 로그인 실패 (아이디/비번 혹은 IP 차단 상태 확인)")
 
     st.markdown("<hr style='border: 0; height: 1px; background-color: #334155; margin: 16px 0;'>", unsafe_allow_html=True)
-    st.subheader("⚙️ 스크리닝 필터 설정")
+    st.markdown("<div style='font-size: 0.95rem; font-weight: 700; color: #e2e8f0; margin-bottom: 6px;'>⚙️ 스크리닝 필터 설정</div>", unsafe_allow_html=True)
 
     # 시장 구분
     market_choice = st.radio(
@@ -320,7 +339,7 @@ with st.sidebar:
     min_turnover = st.number_input("최소 5일 평균 거래대금 (억 원)", min_value=0, max_value=50000, value=20, step=5)
 
     # 수급 주체 및 세부 필터
-    st.subheader("🎯 수급 상세 조건")
+    st.markdown("<div style='font-size: 0.95rem; font-weight: 700; color: #e2e8f0; margin-bottom: 6px;'>🎯 수급 상세 조건</div>", unsafe_allow_html=True)
     target_investor = st.selectbox(
         "주 분석 수급 주체", 
         ["연기금", "투신", "사모", "금융투자", "기관합계", "외국인", "외국인+연기금", "외국인+투신+연기금"], 
@@ -590,8 +609,8 @@ if st.session_state.screened_df is not None:
                     # 차트 레이아웃 조정 (고대비 Tailwind Slate 표준 테마)
                     fig.update_layout(
                         template="plotly_dark",
-                        paper_bgcolor="#1E293B",
-                        plot_bgcolor="#0F172A",
+                        paper_bgcolor=STANDARD_CHART_THEME['paper_bgcolor'],
+                        plot_bgcolor=STANDARD_CHART_THEME['plot_bgcolor'],
                         title=dict(
                             text=f"<b>{selected_name} ({selected_ticker}) 주가 및 누적 수급 흐름</b>",
                             font=dict(color="#F8FAFC", size=16)
