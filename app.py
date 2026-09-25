@@ -150,18 +150,24 @@ st.markdown("""
         padding: 0 !important;
     }
     .section-title {
-        font-size: 1.25rem;
+        font-size: 1.20rem;
         font-weight: 700;
         color: #8AB4F8;
-        margin-top: 1.2rem;
-        margin-bottom: 0.6rem;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
     .sub-section-title {
-        font-size: 1.0rem;
-        font-weight: 700;
-        color: #8AB4F8;
-        margin-top: 1.2rem;
-        margin-bottom: 0.5rem;
+        font-size: 1.00rem;
+        font-weight: 600;
+        color: #E2E8F0;
+        margin-top: 14px;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
     }
     /* 주 분석 수급 주체 표시 뱃지 */
     .investor-badge {
@@ -425,7 +431,7 @@ if st.session_state.screened_df is not None:
     if df_res.empty:
         st.markdown(
             f'<div class="section-title" style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">'
-            f'<span>스크리닝 결과 (총 0개 종목)</span>'
+            f'<span>📋 스크리닝 결과 (총 0개 종목)</span>'
             f'<span class="investor-badge">🎯 주 분석 수급 주체: {current_investor}</span>'
             f'</div>', 
             unsafe_allow_html=True
@@ -513,7 +519,7 @@ if st.session_state.screened_df is not None:
         with col_title:
             st.markdown(
                 f'<div class="section-title" style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">'
-                f'<span>스크리닝 결과 (총 {len(df_res)}개 종목)</span>'
+                f'<span>📋 스크리닝 결과 (총 {len(df_res)}개 종목)</span>'
                 f'<span class="investor-badge">🎯 주 분석 수급 주체: {current_investor}</span>'
                 f'</div>', 
                 unsafe_allow_html=True
@@ -532,7 +538,7 @@ if st.session_state.screened_df is not None:
         st.dataframe(df_res, use_container_width=True)
         
         st.markdown("---")
-        st.markdown('<div class="section-title">개별 종목 수급 상세 분석 (Plotly 시각화)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title"><span>📈</span> 개별 종목 수급 상세 분석 (Plotly 시각화)</div>', unsafe_allow_html=True)
         
         # 종목 선택
         tickers_list = [f"{ticker} | {row['종목명']}" for ticker, row in df_res.iterrows()]
@@ -639,7 +645,7 @@ if st.session_state.screened_df is not None:
                     st.plotly_chart(fig, use_container_width=True)
                     
                     # 당일의 수급 주체별 상세 표 제공
-                    st.markdown('<div class="sub-section-title">수급 주체별 당일 순매수 상세</div>', unsafe_allow_html=True)
+                    st.markdown('<div class="sub-section-title"><span>📊</span> 수급 주체별 당일 순매수 상세</div>', unsafe_allow_html=True)
                     today_data = df_series.iloc[-1]
                     df_today_inv = pd.DataFrame(today_data).rename(columns={today_data.name: "순매수대금(원)"})
                     df_today_inv["순매수대금(억)"] = (df_today_inv["순매수대금(원)"] / 100000000).round(2)
