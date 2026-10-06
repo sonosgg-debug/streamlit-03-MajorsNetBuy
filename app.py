@@ -1,5 +1,3 @@
-import socket
-socket.setdefaulttimeout(5.0)
 
 import streamlit as st
 import io
@@ -30,7 +28,6 @@ STANDARD_CHART_THEME = {
     'hover_bg': 'rgba(15, 23, 42, 0.9)',
     'hover_border': '#334155'
 }
-
 
 # 페이지 설정
 st.set_page_config(
