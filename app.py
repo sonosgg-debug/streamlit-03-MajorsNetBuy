@@ -440,11 +440,26 @@ if st.session_state.screened_df is not None:
     else:
         # Excel 다운로드 기능 (사전 생성)
         market_suffixes = {
-            "ALL": "ALL",
+            # 현재 사이드바 UI 선택값 및 내부 매핑값
             "KOSPI": "KS",
-            "KOSDAQ": "KQ"
+            "KOSDAQ": "KQ",
+            "ALL": "ALL",
+            # 레거시 및 호환용 명칭
+            "코스피 (KOSPI)": "KS",
+            "코스닥 (KOSDAQ)": "KQ",
+            "전체 (ALL)": "ALL",
+            "전체 시장 (KOSPI + KOSDAQ)": "KS&KQ"
         }
-        market_suffix = market_suffixes.get(current_market, "ALL")
+        raw_market = str(current_market).strip() if current_market else ""
+        market_suffix = market_suffixes.get(raw_market)
+        if not market_suffix:
+            key_upper = raw_market.upper()
+            if "KOSPI" in key_upper or "코스피" in raw_market:
+                market_suffix = "KS"
+            elif "KOSDAQ" in key_upper or "코스닥" in raw_market:
+                market_suffix = "KQ"
+            else:
+                market_suffix = "ALL"
         
         investor_codes = {
             "연기금": "11",
