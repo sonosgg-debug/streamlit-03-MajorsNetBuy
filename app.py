@@ -447,6 +447,8 @@ if run_button:
 # 스크리닝 결과 표시
 if st.session_state.screened_df is not None:
     df_res = st.session_state.screened_df.copy()
+    if "시장" in df_res.columns:
+        df_res["시장"] = df_res["시장"].replace({"코스피": "KOSPI", "코스닥": "KOSDAQ"})
     if "종가" in df_res.columns and "현재가" not in df_res.columns:
         df_res = df_res.rename(columns={"종가": "현재가"})
     if "시가총액(억)" in df_res.columns and "현재가" in df_res.columns:

@@ -164,12 +164,14 @@ class StockScreener:
         if not df_screened.empty:
             df_screened = df_screened.sort_values(by="누적수급강도(시총비)", ascending=False)
             
-            # 시장 구분 컬럼 생성
+            # 시장 구분 컬럼 생성 (KOSPI / KOSDAQ)
             def get_mkt_name(ticker):
                 if ticker in self.kospi_tickers:
-                    return "코스피"
+                    return "KOSPI"
                 elif ticker in self.kosdaq_tickers:
-                    return "코스닥"
+                    return "KOSDAQ"
+                elif self.market in ["KOSPI", "KOSDAQ"]:
+                    return self.market
                 return "기타"
             df_screened["시장"] = df_screened.index.map(get_mkt_name)
             
