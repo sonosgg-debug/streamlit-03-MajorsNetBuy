@@ -185,11 +185,12 @@ class StockScreener:
             df_screened["ZScore"] = df_screened["수급ZScore"].round(2)
             
             output_cols = [
-                "종목명", "시장", "종가", "시가총액(억)", "5일평균거래대금(억)", 
+                "종목명", "시장", "시가총액(억)", "현재가", "5일평균거래대금(억)", 
                 "누적순매수대금(억)", "누적수급강도(%)", 
                 "당일순매수대금(억)", "당일수급지배력(%)", "ZScore",
                 "외인순매수(억)", "기관순매수(억)", "양매수여부"
             ]
-            df_screened = df_screened[output_cols]
+            df_screened = df_screened.rename(columns={"종가": "현재가"})
+            df_screened = df_screened[[c for c in output_cols if c in df_screened.columns]]
             
         return df_screened

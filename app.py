@@ -414,7 +414,16 @@ if run_button:
 
 # 스크리닝 결과 표시
 if st.session_state.screened_df is not None:
-    df_res = st.session_state.screened_df
+    df_res = st.session_state.screened_df.copy()
+    if "종가" in df_res.columns and "현재가" not in df_res.columns:
+        df_res = df_res.rename(columns={"종가": "현재가"})
+    if "시가총액(억)" in df_res.columns and "현재가" in df_res.columns:
+        cols = list(df_res.columns)
+        idx_marcap = cols.index("시가총액(억)")
+        idx_price = cols.index("현재가")
+        if idx_price < idx_marcap:
+            cols[idx_price], cols[idx_marcap] = cols[idx_marcap], cols[idx_price]
+            df_res = df_res[cols]
     current_investor = st.session_state.get("screened_investor", target_investor)
     current_market = st.session_state.get("screened_market", market)
     current_date = st.session_state.get("screened_date", selected_date)
@@ -461,20 +470,8 @@ if st.session_state.screened_df is not None:
             else:
                 market_suffix = "ALL"
         
-        investor_codes = {
-            "연기금": "11",
-            "투신": "12",
-            "사모": "13",
-            "금융투자": "14",
-            "기관합계": "15",
-            "외국인": "21",
-            "외국인+연기금": "98",
-            "외국인+투신+연기금": "99"
-        }
-        investor_code = investor_codes.get(current_investor, "00")
-        
         formatted_date = current_date.strftime("%Y-%m-%d")
-        excel_filename = f"MajorsNetBuy-{market_suffix}-{investor_code}-{formatted_date}.xlsx"
+        excel_filename = f"MajorsNetBuy-{market_suffix}-{formatted_date}.xlsx"
         
         excel_buffer = io.BytesIO()
         with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
@@ -484,6 +481,10 @@ if st.session_state.screened_df is not None:
             max_row = worksheet.max_row
             max_col = worksheet.max_column
             
+            # A1 헤더가 비어있으면 '티커' 명시
+            if not worksheet.cell(row=1, column=1).value:
+                worksheet.cell(row=1, column=1).value = "티커"
+
             # 1. 1행 (헤더) 자동 필터 적용 (오름차순/내림차순 토글)
             from openpyxl.utils import get_column_letter
             worksheet.auto_filter.ref = f"A1:{get_column_letter(max_col)}{max_row}"
@@ -499,18 +500,37 @@ if st.session_state.screened_df is not None:
                 cell.font = header_font
                 cell.alignment = Alignment(horizontal="center", vertical="center")
                 
-            # 3. 데이터 셀 서식 지정 (C열 가운데 정렬 & 소수점 자릿수 포맷 설정)
+            headers = [str(worksheet.cell(row=1, column=c).value or '').strip() for c in range(1, max_col + 1)]
+            
+            # 3. 데이터 셀 서식 지정 (A열 6자리 텍스트 유지 & 헤더별 포맷 설정)
             for row_idx in range(2, max_row + 1):
-                # C열 (시장) 가운데 정렬
-                worksheet.cell(row=row_idx, column=3).alignment = Alignment(horizontal="center", vertical="center")
-                
-                # E, F열 (시가총액, 거래대금): 소수점 1자리
-                for col_idx in [5, 6]:
-                    worksheet.cell(row=row_idx, column=col_idx).number_format = "0.0"
-                    
-                # G ~ M열 (누적/당일 수급 및 ZScore 등): 소수점 2자리
-                for col_idx in range(7, 14):
-                    worksheet.cell(row=row_idx, column=col_idx).number_format = "0.00"
+                # A열 (티커) 6자리 텍스트 서식 및 가운데 정렬
+                code_cell = worksheet.cell(row=row_idx, column=1)
+                code_val = str(code_cell.value or '').strip()
+                if code_val.isdigit():
+                    code_cell.value = code_val.zfill(6)
+                code_cell.number_format = "@"
+                code_cell.alignment = Alignment(horizontal="center", vertical="center")
+
+                for col_idx in range(2, max_col + 1):
+                    cell = worksheet.cell(row=row_idx, column=col_idx)
+                    h_name = headers[col_idx - 1]
+
+                    if h_name in ["시장", "양매수여부"]:
+                        cell.alignment = Alignment(horizontal="center", vertical="center")
+                    elif h_name in ["종목명"]:
+                        cell.alignment = Alignment(horizontal="left", vertical="center")
+                    elif h_name == "현재가":
+                        cell.alignment = Alignment(horizontal="right", vertical="center")
+                        cell.number_format = "#,##0"
+                    elif h_name in ["시가총액(억)", "5일평균거래대금(억)"]:
+                        cell.alignment = Alignment(horizontal="right", vertical="center")
+                        cell.number_format = "#,##0.0"
+                    elif any(s in h_name for s in ["대금", "순매수", "강도", "지배력", "ZScore"]):
+                        cell.alignment = Alignment(horizontal="right", vertical="center")
+                        cell.number_format = "#,##0.00"
+                    else:
+                        cell.alignment = Alignment(horizontal="right", vertical="center")
 
             # 4. 열 너비 자동 조절 (동적 기준)
             for col in worksheet.columns:
