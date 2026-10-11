@@ -1,4 +1,21 @@
 
+import sys
+# Python 3.12+ 및 Streamlit Cloud 환경에서 pykrx의 pkg_resources 모듈 임포트 에러 방지용 shim
+try:
+    import pkg_resources
+except Exception:
+    try:
+        import setuptools.command
+        import pkg_resources
+    except Exception:
+        import types
+        pkg_mock = types.ModuleType("pkg_resources")
+        pkg_mock.resource_filename = lambda *args, **kwargs: ""
+        pkg_mock.resource_string = lambda *args, **kwargs: b""
+        pkg_mock.Requirement = type("Requirement", (), {"parse": lambda s: s})
+        pkg_mock.get_distribution = lambda *args, **kwargs: type("Dist", (), {"version": "1.0.0"})()
+        sys.modules["pkg_resources"] = pkg_mock
+
 import streamlit as st
 import io
 import pandas as pd
@@ -6,13 +23,23 @@ import datetime
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import os
+import importlib
 
+# [가이드 05] Streamlit Cloud 보조 모듈 강제 리로드 의무화
+import data_loader
+importlib.reload(data_loader)
 from data_loader import (
     setup_krx_auth,
     fetch_daily_net_purchases_series,
     get_nearest_business_day,
     is_krx_trading_day
 )
+
+import indicators
+importlib.reload(indicators)
+
+import screener
+importlib.reload(screener)
 from screener import StockScreener
 
 STANDARD_CHART_THEME = {
