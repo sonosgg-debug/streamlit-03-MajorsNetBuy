@@ -17,6 +17,15 @@ except Exception:
         sys.modules["pkg_resources"] = pkg_mock
 
 import streamlit as st
+
+# [가이드 05] Streamlit 명령 최우선 실행 보장 (StreamlitAPIException 및 무한 로딩 방어)
+st.set_page_config(
+    page_title="한국 증시 메이저 수급 스크리너",
+    page_icon="🏛️",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
 import io
 import pandas as pd
 import datetime
@@ -25,22 +34,26 @@ from plotly.subplots import make_subplots
 import os
 import importlib
 
-# [가이드 05] Streamlit Cloud 보조 모듈 강제 리로드 의무화
-import data_loader
-importlib.reload(data_loader)
-from data_loader import (
-    setup_krx_auth,
-    fetch_daily_net_purchases_series,
-    get_nearest_business_day,
-    is_krx_trading_day
-)
+# [가이드 05] Streamlit Cloud 보조 모듈 강제 리로드 및 예외 격리
+try:
+    import data_loader
+    importlib.reload(data_loader)
+    from data_loader import (
+        setup_krx_auth,
+        fetch_daily_net_purchases_series,
+        get_nearest_business_day,
+        is_krx_trading_day
+    )
 
-import indicators
-importlib.reload(indicators)
+    import indicators
+    importlib.reload(indicators)
 
-import screener
-importlib.reload(screener)
-from screener import StockScreener
+    import screener
+    importlib.reload(screener)
+    from screener import StockScreener
+except Exception as e:
+    st.error(f"모듈 로드 중 오류가 발생했습니다: {e}")
+    st.stop()
 
 STANDARD_CHART_THEME = {
     'paper_bgcolor': '#1E293B',    # Tailwind Slate-800 (외곽 카드 배경)
@@ -55,14 +68,6 @@ STANDARD_CHART_THEME = {
     'hover_bg': 'rgba(15, 23, 42, 0.9)',
     'hover_border': '#334155'
 }
-
-# 페이지 설정
-st.set_page_config(
-    page_title="한국 증시 메이저 수급 스크리너",
-    page_icon="🏛️",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
 
 st.markdown("""
 <style>
