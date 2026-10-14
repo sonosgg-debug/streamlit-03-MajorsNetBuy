@@ -67,7 +67,7 @@ class StockScreener:
                accum_days=5,                           # 누적 수급 계산 기간 N일
                target_investor="연기금",                 # 분석할 주요 투자 주체
                min_accum_intensity=0.2,                # 시총 대비 누적 순매수 비율 임계치 (%)
-               min_zscore=1.5,                         # 당일 Z-Score 임계치 (수급 폭발)
+               min_zscore=2.0,                         # 당일 Z-Score 임계치 (수급 폭발)
                zscore_lookback_days=20,                # Z-Score 산출용 과거 룩백 기간 M일
                require_dual_buy=False                  # 외국인 + 기관합계 동시 순매수(양매수) 필수 여부
               ):

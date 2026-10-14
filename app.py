@@ -417,7 +417,7 @@ with st.sidebar:
     min_accum_intensity = st.slider("시총 대비 누적 매집 비율 (%)", min_value=0.01, max_value=5.0, value=0.2, step=0.05)
 
     # Z-Score 조건
-    min_zscore = st.slider("당일 수급 Z-Score 최소치", min_value=-1.0, max_value=5.0, value=1.5, step=0.1)
+    min_zscore = st.slider("당일 수급 Z-Score 최소치", min_value=-1.0, max_value=5.0, value=2.0, step=0.1)
     zscore_lookback = st.slider("Z-Score 산출 룩백 기간 M (일)", min_value=5, max_value=60, value=20)
 
     # 양매수 필수 여부
