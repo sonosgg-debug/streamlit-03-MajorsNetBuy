@@ -369,9 +369,41 @@ with st.sidebar:
     }
     market = market_map.get(market_choice, "KOSPI")
 
+    # 대상 범위 (Scope)
+    st.markdown("<div style='font-size: 0.95rem; font-weight: 700; color: #e2e8f0; margin-bottom: 6px;'>🎯 대상 범위 (Scope)</div>", unsafe_allow_html=True)
+    SCOPES = [
+        "시총 상위 200 (쾌속 모드)",
+        "시총 상위 500 (확장 모드)",
+        "코스피 200 / 코스닥 150",
+        "전체 종목 (전수조사)"
+    ]
+    sel_scope = st.selectbox(
+        "대상 범위",
+        SCOPES,
+        index=0,
+        label_visibility="collapsed"
+    )
+
     # 시가총액/거래대금 기본 필터
-    min_mkt_cap = st.number_input("최소 시가총액 (억 원)", min_value=10, max_value=500000, value=1000, step=100)
-    min_turnover = st.number_input("최소 5일 평균 거래대금 (억 원)", min_value=0, max_value=50000, value=20, step=5)
+    MIN_MARKET_CAP_OPTIONS = [0, 300, 500, 1000, 2000, 3000, 5000, 10000]
+    st.markdown("<div style='font-size: 0.95rem; font-weight: 700; color: #e2e8f0; margin-bottom: 6px;'>💰 최소 시가총액 (억 원)</div>", unsafe_allow_html=True)
+    min_mkt_cap = st.select_slider(
+        "최소 시가총액",
+        options=MIN_MARKET_CAP_OPTIONS,
+        value=3000,
+        format_func=lambda x: f"{x:,}억 원" if x > 0 else "제한 없음 (전체)",
+        label_visibility="collapsed"
+    )
+
+    MIN_TURNOVER_5D_OPTIONS = [0, 10, 20, 30, 50, 100, 200, 300, 500, 1000]
+    st.markdown("<div style='font-size: 0.95rem; font-weight: 700; color: #e2e8f0; margin-bottom: 6px;'>📊 최소 5일 평균 거래대금 (억 원)</div>", unsafe_allow_html=True)
+    min_turnover = st.select_slider(
+        "최소 5일 평균 거래대금",
+        options=MIN_TURNOVER_5D_OPTIONS,
+        value=100,
+        format_func=lambda x: f"{x:,}억 원" if x > 0 else "제한 없음 (전체)",
+        label_visibility="collapsed"
+    )
 
     # 수급 주체 및 세부 필터
     st.markdown("<div style='font-size: 0.95rem; font-weight: 700; color: #e2e8f0; margin-bottom: 6px;'>🎯 수급 상세 조건</div>", unsafe_allow_html=True)
@@ -425,6 +457,7 @@ if run_button:
                 target_bday = actual_target_bday
                 screener = StockScreener(target_date=target_bday, market=market)
                 df_result = screener.screen(
+                    scope=sel_scope,
                     min_market_cap_krw=min_mkt_cap * 100000000,
                     min_turnover_5d_krw=min_turnover * 100000000,
                     accum_days=accum_days,
@@ -437,6 +470,7 @@ if run_button:
                 st.session_state.screened_df = df_result
                 st.session_state.screened_investor = target_investor
                 st.session_state.screened_market = market
+                st.session_state.screened_scope = sel_scope
                 st.session_state.screened_date = datetime.datetime.strptime(target_bday, "%Y%m%d").date()
                 st.session_state.is_mkt_cap_empty = screener.df_mkt_cap.empty
                 st.session_state.was_holiday_adjusted = (actual_target_bday != target_date_str)
@@ -460,6 +494,7 @@ if st.session_state.screened_df is not None:
             df_res = df_res[cols]
     current_investor = st.session_state.get("screened_investor", target_investor)
     current_market = st.session_state.get("screened_market", market)
+    current_scope = st.session_state.get("screened_scope", sel_scope)
     current_date = st.session_state.get("screened_date", selected_date)
     is_mkt_cap_empty = st.session_state.get("is_mkt_cap_empty", False)
     was_holiday_adjusted = st.session_state.get("was_holiday_adjusted", False)
@@ -590,7 +625,7 @@ if st.session_state.screened_df is not None:
                 f'</div>', 
                 unsafe_allow_html=True
             )
-            st.caption(f"💡 기준일: **{formatted_date}** | 시장: **{market_suffix}** | 주 분석 수급 주체: **{current_investor}**")
+            st.caption(f"💡 기준일: **{formatted_date}** | 범위: **{current_scope}** | 시장: **{market_suffix}** | 주 분석 수급 주체: **{current_investor}**")
         with col_btn:
             st.download_button(
                 label="📥 엑셀 파일 다운로드",

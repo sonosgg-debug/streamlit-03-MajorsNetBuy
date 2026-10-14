@@ -29,9 +29,14 @@ class StockScreener:
         self.df_mkt_cap = fetch_market_cap_with_cache(self.target_date, market=self.market)
         
         # 시장 구분용 티커 목록 로드 (코스피/코스닥 구분용)
-        from pykrx import stock
-        self.kospi_tickers = set(stock.get_market_ticker_list(date=self.target_date, market="KOSPI"))
-        self.kosdaq_tickers = set(stock.get_market_ticker_list(date=self.target_date, market="KOSDAQ"))
+        try:
+            from pykrx import stock
+            self.kospi_tickers = set(stock.get_market_ticker_list(date=self.target_date, market="KOSPI"))
+            self.kosdaq_tickers = set(stock.get_market_ticker_list(date=self.target_date, market="KOSDAQ"))
+        except Exception as e:
+            print(f"Error fetching market ticker lists: {e}")
+            self.kospi_tickers = set()
+            self.kosdaq_tickers = set()
         
     def _get_historical_business_days(self, days_needed):
         """
@@ -56,8 +61,9 @@ class StockScreener:
         return recent_days
 
     def screen(self, 
-               min_market_cap_krw=1000 * 100000000,    # 최소 시가총액 (1000억 원)
-               min_turnover_5d_krw=20 * 100000000,     # 최근 5일 평균 거래대금 (20억 원)
+               scope="시총 상위 200 (쾌속 모드)",
+               min_market_cap_krw=3000 * 100000000,    # 최소 시가총액 (3000억 원)
+               min_turnover_5d_krw=100 * 100000000,    # 최근 5일 평균 거래대금 (100억 원)
                accum_days=5,                           # 누적 수급 계산 기간 N일
                target_investor="연기금",                 # 분석할 주요 투자 주체
                min_accum_intensity=0.2,                # 시총 대비 누적 순매수 비율 임계치 (%)
@@ -72,12 +78,37 @@ class StockScreener:
             print("Market cap data is empty. Screening aborted.")
             return pd.DataFrame()
             
-        # 1. 기본 대상 필터링 (시가총액)
-        df_filtered = self.df_mkt_cap[self.df_mkt_cap["시가총액"] >= min_market_cap_krw].copy()
+        # 1. 대상 범위 (Scope) 필터링
+        df_base = self.df_mkt_cap.copy()
+        if ("200" in scope) and ("코스피" not in scope):
+            df_filtered = df_base.sort_values(by="시가총액", ascending=False).head(200)
+        elif "500" in scope:
+            df_filtered = df_base.sort_values(by="시가총액", ascending=False).head(500)
+        elif "코스피 200" in scope:
+            if self.market == "KOSPI":
+                df_filtered = df_base.sort_values(by="시가총액", ascending=False).head(200)
+            elif self.market == "KOSDAQ":
+                df_filtered = df_base.sort_values(by="시가총액", ascending=False).head(150)
+            else:  # ALL
+                ks_idx = [t for t in df_base.index if t in self.kospi_tickers]
+                kq_idx = [t for t in df_base.index if t in self.kosdaq_tickers]
+                if ks_idx or kq_idx:
+                    df_ks = df_base.loc[ks_idx].sort_values(by="시가총액", ascending=False).head(200) if ks_idx else pd.DataFrame()
+                    df_kq = df_base.loc[kq_idx].sort_values(by="시가총액", ascending=False).head(150) if kq_idx else pd.DataFrame()
+                    df_filtered = pd.concat([df_ks, df_kq])
+                else:
+                    df_filtered = df_base.sort_values(by="시가총액", ascending=False).head(350)
+        else:
+            df_filtered = df_base
+
+        # 2. 기본 대상 필터링 (최소 시가총액: 0보다 큰 경우에만 적용)
+        if min_market_cap_krw > 0:
+            df_filtered = df_filtered[df_filtered["시가총액"] >= min_market_cap_krw]
+
         if df_filtered.empty:
             return pd.DataFrame()
             
-        # 2. 거래대금 필터링 (최근 5일 평균 거래대금 계산)
+        # 3. 거래대금 필터링 (최근 5일 평균 거래대금 계산)
         # N일 전 날짜 계산
         recent_5_days = self._get_historical_business_days(5)
         if len(recent_5_days) > 0:
@@ -88,10 +119,11 @@ class StockScreener:
                     turnovers.append(df_cap["거래대금"])
             if turnovers:
                 df_turnover_avg = pd.concat(turnovers, axis=1).mean(axis=1)
-                # 필터 적용
-                valid_tickers = df_turnover_avg[df_turnover_avg >= min_turnover_5d_krw].index
-                df_filtered = df_filtered[df_filtered.index.isin(valid_tickers)]
-                df_filtered["5일평균거래대금"] = df_turnover_avg[df_filtered.index]
+                # 필터 적용 (0보다 큰 경우에만 적용)
+                if min_turnover_5d_krw > 0:
+                    valid_tickers = df_turnover_avg[df_turnover_avg >= min_turnover_5d_krw].index
+                    df_filtered = df_filtered[df_filtered.index.isin(valid_tickers)]
+                df_filtered["5일평균거래대금"] = df_turnover_avg.reindex(df_filtered.index)
         
         if df_filtered.empty:
             return pd.DataFrame()
